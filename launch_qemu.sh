@@ -10,5 +10,3 @@ trap cleanup EXIT
 screen -S qemu -d -m qemu-system-i386 -S -s -hda rootfs.img
 
 TERM=xterm gdb-multiarch -x gdb_os.txt
-
-
