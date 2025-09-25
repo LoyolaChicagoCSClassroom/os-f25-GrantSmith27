@@ -20,7 +20,7 @@ static int column=0;
 
 //forward declarations for putc
 static void scroll(void);
-static void newLine(void);
+static void newline(void);
 
 //writing one character advances the cursor
 int putc(int ch) {
@@ -67,7 +67,7 @@ static unsigned get_cpl(void) {
     unsigned cs;
     __asm__ __volatile__("mov %%cs, %0" : "=r"(cs));
     return cs & 0x3;
-
+}
 void main(void) {
  //test
   esp_printf(putc, "Hello World!\r\n");
