@@ -1,6 +1,6 @@
-
 #include <stdint.h>
 #include "rprintf.h"
+#include "page.h"
 
 #define MULTIBOOT2_HEADER_MAGIC         0xe85250d6
 
@@ -74,6 +74,8 @@ static void newLine(void) {
     }
 }
 
+//adapter for esp_printf
+int vga_putc(int c) { return putc(c); }
 
 unsigned char keyboard_map[128] =
 {
@@ -115,7 +117,13 @@ unsigned char keyboard_map[128] =
    0,  /* All other keys are undefined */
 };
 
-void main() {
+void main(){
+
+//Page Frame Allocator
+init_pfa_list();
+   esp_printf(vga_putc, "Page Frame Allocator Initialized!\n");
+   print_pfa_state();
+
    while(1) {
     uint8_t status = inb(0x64);
  
@@ -130,5 +138,3 @@ void main() {
      }
    }
 } 
-
-   
