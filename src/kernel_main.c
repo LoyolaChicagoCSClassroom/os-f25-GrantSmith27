@@ -47,7 +47,7 @@ int putc(int ch) {
     video_memory[row * width + column].ASCII = (unsigned char)ch;
     video_memory[row * width + column].COLOR = default_color;
 
-   //move cursor the right right until it needs to go to the next row
+   //move cursor to the right until it needs to go to the next row
     if (++column >= width) newLine();
     return ch;
 }
@@ -117,24 +117,30 @@ unsigned char keyboard_map[128] =
    0,  /* All other keys are undefined */
 };
 
-void main(){
+void main(void){
+//Init Page Frame Allocator
+    init_pfa_list();
+    esp_printf(vga_putc, "Page Frame Allocator Initialized!\n");
+    print_pfa_state();
 
-//Page Frame Allocator
-init_pfa_list();
-   esp_printf(vga_putc, "Page Frame Allocator Initialized!\n");
-   print_pfa_state();
+    //Enable paging
+    enable_paging();
+    esp_printf(vga_putc, "Paging enabled from kernel_main.\n");
+    //Quick confirmation
+    esp_printf(vga_putc, "Hello from paged world!\n");
 
-   while(1) {
-    uint8_t status = inb(0x64);
- 
-     // check if output buffer is full
-     if(status & 1) { 
-        uint8_t scancode = inb(0x60);
+    //Keyboard polling loop
+    while(1) {
+        uint8_t status = inb(0x64);
 
-       //print key presses only
-       if(scancode < 128) {
-            esp_printf(putc, "0x%02x    %c\n", scancode, keyboard_map[scancode]);
-       }
-     }
-   }
-} 
+        // check if output buffer is full
+        if(status & 1) {
+            uint8_t scancode = inb(0x60);
+
+            //print key presses only
+            if(scancode < 128) {
+                esp_printf(putc, "0x%02x    %c\n", scancode, keyboard_map[scancode]);
+            }
+        }
+    }
+}
