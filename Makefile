@@ -1,6 +1,4 @@
-
 UNAME_M := $(shell uname -m)
-
 ifeq ($(UNAME_M),aarch64)
 PREFIX:=i686-linux-gnu-
 BOOTIMG:=/usr/local/grub/lib/grub/i386-pc/boot.img
@@ -16,6 +14,8 @@ LD := $(PREFIX)ld
 OBJDUMP := $(PREFIX)objdump
 OBJCOPY := $(PREFIX)objcopy
 SIZE := $(PREFIX)size
+NASM := nasm
+
 CONFIGS := -DCONFIG_HEAP_SIZE=4096
 CFLAGS := -ffreestanding -mgeneral-regs-only -mno-mmx -m32 -march=i386 -fno-pie -fno-stack-protector -g3 -Wall 
 
@@ -26,6 +26,8 @@ OBJS = \
 	kernel_main.o \
         rprintf.o \
         page.o \
+        ide.o \
+        fat.o \
 
 # Make sure to keep a blank line here after OBJS list
 
@@ -35,8 +37,7 @@ $(ODIR)/%.o: $(SDIR)/%.c
 	$(CC) $(CFLAGS) -c -g -o $@ $^
 
 $(ODIR)/%.o: $(SDIR)/%.s
-	$(CC) $(CFLAGS) -c -g -o $@ $^
-
+	$(NASM) -f elf32 -o $@ $^
 
 all: bin rootfs.img
 
@@ -57,8 +58,13 @@ rootfs.img:
 	mcopy -i rootfs.img@@1M kernel ::/
 	mmd -i rootfs.img@@1M boot 
 	mcopy -i rootfs.img@@1M grub.cfg ::/boot
+	@echo "Creating test.txt..."
+	@echo "Hello from FAT filesystem!" > test.txt
+	@echo "This is a test file for the FAT driver." >> test.txt
+	@echo "If you can read this, your FAT driver works!" >> test.txt
+	mcopy -i rootfs.img@@1M test.txt ::/
+	@rm test.txt
 	@echo " -- BUILD COMPLETED SUCCESSFULLY --"
-
 
 run:
 	qemu-system-i386 -hda rootfs.img
